@@ -1,33 +1,22 @@
 package kr.co.itcen.mysite.repository;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
 import kr.co.itcen.mysite.vo.BoardVo;
 
 public class BoardDao {
+	@Autowired
+	private DataSource dataSource;
 	
-	private Connection getConnection() throws SQLException {
-		Connection connection = null;
-
-		try {
-			Class.forName("org.mariadb.jdbc.Driver");
-
-			String url = "jdbc:mariadb://192.168.1.85:3306/webdb?characterEncoding=utf8";
-			connection = DriverManager.getConnection(url, "webdb", "webdb");
-
-		} catch (ClassNotFoundException e) {
-			System.out.println("Fail to Loading Driver: " + e);
-		}
-
-		return connection;
-	}
-
 	public Boolean insert(BoardVo vo) {
 		Boolean result = false;
 		Connection connection = null;
@@ -35,7 +24,7 @@ public class BoardDao {
 		ResultSet rs = null;
 
 		try {
-			connection = getConnection();
+			connection = dataSource.getConnection();
 
 			String sql = "insert into board values(null, ?, ?, 0, now(), (select ifnull(max(g_no)+1, 1) from board b), 1, 0, ?)";
 			pstmt = connection.prepareStatement(sql);
@@ -75,7 +64,7 @@ public class BoardDao {
 		ResultSet rs = null;
 
 		try {
-			connection = getConnection();
+			connection = dataSource.getConnection();
 
 			String sql = "select board.no, board.title, user.name, user.no, board.hit, date_format(reg_date, '%Y-%m-%d %h:%i:%s'), board.o_no, board.depth from board join user on board.user_no = user.no order by g_no desc, o_no asc, reg_date desc";
 			pstmt = connection.prepareStatement(sql);
@@ -133,7 +122,7 @@ public class BoardDao {
 		ResultSet rs = null;
 
 		try {
-			connection = getConnection();
+			connection = dataSource.getConnection();
 
 			String sql = "select board.no, title, user.name, user.no, hit, date_format(reg_date, '%Y-%m-%d %h:%i:%s') from board join user on board.user_no = user.no where board.title like '%" + search + "%' or user.name like '%" + search + "%' order by g_no desc, o_no asc, reg_date desc";
 			pstmt = connection.prepareStatement(sql);
@@ -186,7 +175,7 @@ public class BoardDao {
 		PreparedStatement pstmt = null;
 		
 		try {
-			connection = getConnection();
+			connection = dataSource.getConnection();
 			String sql = "update board set title = ?, contents = ? where no = ?";
 			pstmt = connection.prepareStatement(sql);
 			
@@ -221,7 +210,7 @@ public class BoardDao {
 		ResultSet rs = null;
 		
 		try {
-			connection = getConnection();
+			connection = dataSource.getConnection();
 			String sql = "select b.no, b.title, b.contents, b.hit, date_format(b.reg_date, '%Y-%m-%d %h:%i:%s'), b.g_no, b.o_no, b.depth, u.name, u.no" +
 						 " from board b, user u where b.user_no = u.no and b.no = ?";
 			
@@ -283,7 +272,7 @@ public class BoardDao {
 		ResultSet rs = null;
 
 		try {
-			connection = getConnection();
+			connection = dataSource.getConnection();
 
 			String sql = "insert into board values(null, ?, ?, 0, now(), ?, ?, ?, ?)";
 			pstmt = connection.prepareStatement(sql);
@@ -325,7 +314,7 @@ public class BoardDao {
 		PreparedStatement pstmt = null;
 		
 		try {
-			connection = getConnection();
+			connection = dataSource.getConnection();
 			String sql = "update board set hit = hit + 1 where no = ?";
 			pstmt = connection.prepareStatement(sql);
 			
@@ -358,7 +347,7 @@ public class BoardDao {
 		PreparedStatement pstmt = null;
 
 		try {
-			connection = getConnection();
+			connection = dataSource.getConnection();
 
 			String sql = "update board set title = ? where no = ?";
 			pstmt = connection.prepareStatement(sql);
@@ -391,7 +380,7 @@ public class BoardDao {
 		PreparedStatement pstmt = null;
 		
 		try {
-			connection = getConnection();
+			connection = dataSource.getConnection();
 			String sql = "update board set o_no = o_no + 1 where g_no = ? and o_no > ?";
 			pstmt = connection.prepareStatement(sql);
 			
@@ -414,9 +403,7 @@ public class BoardDao {
 				System.out.println("error: " + e);
 			}
 		}
-
 		return result;
-		
 	}
 	
 }

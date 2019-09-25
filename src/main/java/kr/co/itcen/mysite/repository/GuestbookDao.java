@@ -1,7 +1,6 @@
 package kr.co.itcen.mysite.repository;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,28 +8,17 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import kr.co.itcen.mysite.vo.GuestbookVo;
 
 @Repository
 public class GuestbookDao {
-	
-	private Connection getConnection() throws SQLException {
-		Connection connection = null;
-
-		try {
-			Class.forName("org.mariadb.jdbc.Driver");
-
-			String url = "jdbc:mariadb://192.168.1.85:3306/webdb?characterEncoding=utf8";
-			connection = DriverManager.getConnection(url, "webdb", "webdb");
-
-		} catch (ClassNotFoundException e) {
-			System.out.println("Fail to Loading Driver: " + e);
-		}
-
-		return connection;
-	}
+	@Autowired
+	private DataSource dataSource;
 	
 	public Boolean insert(GuestbookVo vo) {
 		Boolean result = false;
@@ -40,7 +28,7 @@ public class GuestbookDao {
 		ResultSet rs = null;
 
 		try {
-			connection = getConnection();
+			connection = dataSource.getConnection();
 
 			String sql = "insert into guestbook values(null, ?, ?, ?, now())";
 			pstmt = connection.prepareStatement(sql);
@@ -89,7 +77,7 @@ public class GuestbookDao {
 		ResultSet rs = null;
 
 		try {
-			connection = getConnection();
+			connection = dataSource.getConnection();
 
 			String sql = "select no, name, text, date_format(reg_date, '%Y-%m-%d %h:%i:%s') from guestbook order by reg_date desc";
 			pstmt = connection.prepareStatement(sql);
@@ -137,7 +125,7 @@ public class GuestbookDao {
 		PreparedStatement pstmt = null;
 
 		try {
-			connection = getConnection();
+			connection = dataSource.getConnection();
 
 			String sql = "delete from guestbook where no = ? and password = ?";
 			pstmt = connection.prepareStatement(sql);
