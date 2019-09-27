@@ -18,7 +18,7 @@
 		<div id="content">
 			<div id="board">
 				<form class="board-form" method="post"
-					action="${pageContext.servletContext.contextPath }/board">
+					action="${pageContext.servletContext.contextPath }/board?p=${param.p }">
 					<input type="hidden" name="a" value="write"> <input
 						type="hidden" name="gNo" value="${vo.gNo }"> <input
 						type="hidden" name="oNo" value="${vo.oNo }"> <input
@@ -33,11 +33,11 @@
 						</tr>
 						<tr>
 							<td class="label">내용</td>
-							<td><textarea id="contents" name="contents"></textarea></td>
+							<td><textarea id="content" name="contents"></textarea></td>
 						</tr>
 					</table>
 					<div class="bottom">
-						<a href="${pageContext.servletContext.contextPath }/board?p=${p }">취소</a>
+						<a href="${pageContext.servletContext.contextPath }/board?p=${param.p }">취소</a>
 						<input type="submit" value="등록">
 					</div>
 				</form>

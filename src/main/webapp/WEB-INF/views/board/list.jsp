@@ -18,7 +18,7 @@
 		<div id="content">
 			<div id="board">
 				<form id="search_form"
-					action="${pageContext.servletContext.contextPath }/board?a=searchform"
+					action="${pageContext.servletContext.contextPath }/board/list"
 					method="post">
 					<input type="text" id="kwd" name="kwd" value=""> <input
 						type="submit" value="찾기">
@@ -35,23 +35,25 @@
 					<c:set var="count" value="${fn:length(list) }" />
 					<c:forEach items="${list }" var="vo" varStatus="status">
 						<tr>
-							<td>[${count-status.index }]</td>
-							<td style="text-align:left;"><c:if test="${vo.depth > 0 }">
+							<td>[${paging.listCnt-((paging.curPage-1)*paging.pageSize)-status.index }]</td>
+							<td style="text-align: left;"><c:if test="${vo.depth > 0 }">
 									<c:forEach begin='1' end='${vo.depth }'>&nbsp;&nbsp;
 								</c:forEach>
 									<img
 										src="${pageContext.servletContext.contextPath }/assets/images/reply.png" />
+								</c:if> <c:if test="${vo.status eq 1 }">${vo.title }</c:if> <c:if
+									test="${vo.status ne 1 }">
+									<a
+										href="${pageContext.servletContext.contextPath }/board/view/${vo.no }/${paging.curPage }">${vo.title }</a>
 								</c:if>
-								<a
-								href="${pageContext.servletContext.contextPath }/board?a=view&no=${vo.no }">${vo.title }</a></td>
 							<td>${vo.userName }</td>
 							<td>${vo.hit }</td>
 							<td>${vo.regDate }</td>
 							<c:choose>
 								<c:when
-									test="${!empty authUser and authUser.getNo() == vo.userNo }">
+									test="${!empty authUser and authUser.getNo() eq vo.userNo and vo.status ne 1 }">
 									<td><a
-										href="${pageContext.servletContext.contextPath }/board?a=deleteform&no=${vo.no }"
+										href="${pageContext.servletContext.contextPath }/board/deleteform/${vo.no }/${paging.curPage }"
 										class="del">삭제</a></td>
 								</c:when>
 								<c:otherwise>
@@ -65,28 +67,44 @@
 				<!-- pager 추가 -->
 				<div class="pager">
 					<ul>
-						<li><a href="">◀</a></li>
-						<li class="selected">1</li>
-						<li><a href="">2</a></li>
-						<li><a href="">3</a></li>
-						<li>4</li>
-						<li>5</li>
-						<li><a href="">▶</a></li>
+						<c:if test="${paging.curRange ne 1}">
+							<li><a
+								href="${pageContext.servletContext.contextPath }/board/${paging.prevRange }">[◀]</a></li>
+						</c:if>
+
+						<c:forEach var="pageNum" begin="${paging.startPage }"
+							end="${paging.endPage }">
+							<c:choose>
+								<c:when test="${pageNum eq  paging.curPage}">
+									<li class="selected">${pageNum }</li>
+								</c:when>
+								<c:otherwise>
+									<li><a
+										href="${pageContext.servletContext.contextPath }/board/${pageNum }">${pageNum }</a></li>
+								</c:otherwise>
+							</c:choose>
+						</c:forEach>
+
+						<c:if
+							test="${paging.curRange ne paging.rangeCnt and paging.rangeCnt > 1}">
+							<li><a
+								href="${pageContext.servletContext.contextPath }/board/${paging.nextRange }">[▶]</a></li>
+						</c:if>
 					</ul>
 				</div>
-				<!-- pager 추가 -->
+
 				<c:choose>
 					<c:when test="${!empty authUser }">
 						<div class="bottom">
 							<a
-								href="${pageContext.servletContext.contextPath }/board?a=writeform&userNo=${authUser.no }"
+								href="${pageContext.servletContext.contextPath }/board/write/${authUser.no }/${paging.curPage }"
 								id="new-book">글쓰기</a>
 						</div>
 					</c:when>
 					<c:otherwise>
 						<div class="bottom">
 							<a
-								href="${pageContext.servletContext.contextPath }/user?a=loginform"
+								href="${pageContext.servletContext.contextPath }/user/login"
 								id="new-book">로그인</a>
 						</div>
 					</c:otherwise>

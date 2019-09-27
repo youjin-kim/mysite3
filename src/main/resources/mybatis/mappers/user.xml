@@ -8,6 +8,11 @@
 		  into user 
 		values(null, #{name }, #{email }, #{password }, #{gender }, now())
 		]]>
+		<selectKey keyProperty="no" resultType="long" order="AFTER">
+			<![CDATA[
+			select last_insert_id()
+			]]>
+		</selectKey>
 	</insert>
 	
 	<select id="getByEmailAndPassword1" parameterType="uservo" resultType="uservo">
@@ -28,9 +33,9 @@
 		]]>
 	</select>
 	
-	<select id="getByNo" parameterType="map" resultType="uservo">
+	<select id="getByNo" parameterType="long" resultType="uservo">
 		<![CDATA[
-		select no, name, email, password, gender 
+		select no, name, email, gender 
 		  from user 
 		 where no = #{no }
 		]]>
@@ -39,15 +44,17 @@
 	<update id="update" parameterType="uservo">
 		<![CDATA[
 		update user 
-		   set name = #{name }, password = #{password }, gender = #{gender } 
+		   set name = #{name },
+		]]>
+		<if test=" password != '' ">
+			<![CDATA[
+		       password = #{password },
+		    ]]>
+		</if>
+		<![CDATA[
+		       gender = #{gender } 
 		 where no = #{no }
 		]]>
 	</update>
-
-
-
-
-
-
 
 </mapper>

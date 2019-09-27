@@ -4,16 +4,22 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import kr.co.itcen.mysite.vo.BoardVo;
 
+@Repository
 public class BoardDao {
+	
+	@Autowired
+	private SqlSession sqlSession;
+	
 	@Autowired
 	private DataSource dataSource;
 	
@@ -26,7 +32,7 @@ public class BoardDao {
 		try {
 			connection = dataSource.getConnection();
 
-			String sql = "insert into board values(null, ?, ?, 0, now(), (select ifnull(max(g_no)+1, 1) from board b), 1, 0, ?)";
+			String sql = "insert into board values(null, ?, ?, 0, now(), (select ifnull(max(g_no)+1, 1) from board b), 1, 0, 0, ?)";
 			pstmt = connection.prepareStatement(sql);
 			pstmt.setString(1, vo.getTitle());
 			pstmt.setString(2, vo.getContents());
@@ -57,118 +63,6 @@ public class BoardDao {
 
 	}
 
-	public List<BoardVo> getList() {
-		List<BoardVo> result = new ArrayList<BoardVo>();
-		Connection connection = null;
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-
-		try {
-			connection = dataSource.getConnection();
-
-			String sql = "select board.no, board.title, user.name, user.no, board.hit, date_format(reg_date, '%Y-%m-%d %h:%i:%s'), board.o_no, board.depth from board join user on board.user_no = user.no order by g_no desc, o_no asc, reg_date desc";
-			pstmt = connection.prepareStatement(sql);
-			
-			rs = pstmt.executeQuery();
-			
-			while(rs.next()) {
-				Long no = rs.getLong(1);
-				String title = rs.getString(2);
-				String userName = rs.getString(3);
-				Long userNo = rs.getLong(4);
-				int hit = rs.getInt(5);
-				String regDate = rs.getString(6);
-				int oNo = rs.getInt(7);
-				int depth = rs.getInt(8);
-				
-				BoardVo vo = new BoardVo();
-				vo.setNo(no);
-				vo.setTitle(title);
-				vo.setUserName(userName);
-				vo.setUserNo(userNo);
-				vo.setHit(hit);
-				vo.setRegDate(regDate);
-				vo.setoNo(oNo);
-				vo.setDepth(depth);
-				
-				result.add(vo);
-			}
-
-		} catch (SQLException e) {
-			System.out.println("error: " + e);
-		} finally {
-			try {
-				if (rs != null) {
-					rs.close();
-				}
-				if (pstmt != null) {
-					pstmt.close();
-				}
-				if (connection != null) {
-					connection.close();
-				}
-			} catch (SQLException e) {
-				System.out.println("error: " + e);
-			}
-		}
-
-		return result;
-	}
-	
-	public List<BoardVo> getList(String search) {
-		List<BoardVo> result = new ArrayList<BoardVo>();
-		Connection connection = null;
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-
-		try {
-			connection = dataSource.getConnection();
-
-			String sql = "select board.no, title, user.name, user.no, hit, date_format(reg_date, '%Y-%m-%d %h:%i:%s') from board join user on board.user_no = user.no where board.title like '%" + search + "%' or user.name like '%" + search + "%' order by g_no desc, o_no asc, reg_date desc";
-			pstmt = connection.prepareStatement(sql);
-			
-			rs = pstmt.executeQuery();
-			
-			while(rs.next()) {
-				Long no = rs.getLong(1);
-				String title = rs.getString(2);
-				String userName = rs.getString(3);
-				Long userNo = rs.getLong(4);
-				int hit = rs.getInt(5);
-				String regDate = rs.getString(6);
-				
-				BoardVo vo = new BoardVo();
-				vo.setNo(no);
-				vo.setTitle(title);
-				vo.setUserName(userName);
-				vo.setUserNo(userNo);
-				vo.setHit(hit);
-				vo.setRegDate(regDate);
-				
-				result.add(vo);
-			}
-
-		} catch (SQLException e) {
-			System.out.println("error: " + e);
-		} finally {
-			try {
-				if (rs != null) {
-					rs.close();
-				}
-				if (pstmt != null) {
-					pstmt.close();
-				}
-				if (connection != null) {
-					connection.close();
-				}
-			} catch (SQLException e) {
-				System.out.println("error: " + e);
-			}
-		}
-
-		return result;
-	}
-
 	public BoardVo update(BoardVo vo) {
 		BoardVo result = null;
 		Connection connection = null;
@@ -176,12 +70,13 @@ public class BoardDao {
 		
 		try {
 			connection = dataSource.getConnection();
-			String sql = "update board set title = ?, contents = ? where no = ?";
+			String sql = "update board set title = ?, contents = ?, status = ? where no = ?";
 			pstmt = connection.prepareStatement(sql);
 			
 			pstmt.setString(1, "(수정)" + vo.getTitle());
 			pstmt.setString(2, vo.getContents());
-			pstmt.setLong(3, vo.getNo());
+			pstmt.setInt(3, vo.getStatus()+2);
+			pstmt.setLong(4, vo.getNo());
 			
 			pstmt.executeUpdate();
 			
@@ -274,7 +169,7 @@ public class BoardDao {
 		try {
 			connection = dataSource.getConnection();
 
-			String sql = "insert into board values(null, ?, ?, 0, now(), ?, ?, ?, ?)";
+			String sql = "insert into board values(null, ?, ?, 0, now(), ?, ?, ?, 0, ?)";
 			pstmt = connection.prepareStatement(sql);
 			pstmt.setString(1, vo.getTitle());
 			pstmt.setString(2, vo.getContents());
@@ -349,11 +244,12 @@ public class BoardDao {
 		try {
 			connection = dataSource.getConnection();
 
-			String sql = "update board set title = ? where no = ?";
+			String sql = "update board set title = ?, status = ? where no = ?";
 			pstmt = connection.prepareStatement(sql);
 			
-			pstmt.setString(1, "(삭제된글)" + vo.getTitle());
-			pstmt.setLong(2, vo.getNo());
+			pstmt.setString(1, "삭제된 글 입니다.");
+			pstmt.setInt(2, vo.getStatus()+1);
+			pstmt.setLong(3, vo.getNo());
 
 			pstmt.executeUpdate();
 
@@ -406,4 +302,42 @@ public class BoardDao {
 		return result;
 	}
 	
+	public int totalCount() {
+		int totalCount = 0;
+		Connection connection = null;
+		PreparedStatement pstmt = null;
+		
+		try {
+			connection = dataSource.getConnection();
+			String sql = "select count(*) as totalcount from board";
+			pstmt = connection.prepareStatement(sql);
+			pstmt.executeUpdate();
+			
+		} catch (SQLException e) {
+			System.out.println("error: " + e);
+		} finally {
+			try {
+				if (pstmt != null) {
+					pstmt.close();
+				}
+				if (connection != null) {
+					connection.close();
+				}
+			} catch (SQLException e) {
+				System.out.println("error: " + e);
+			}
+		}
+		
+		return totalCount;
+	}
+
+	public int getListCount(String kwd) {
+		int result = sqlSession.selectOne("board.getListCount", kwd);
+		return result;
+	}
+	
+	public List<BoardVo> getList(String kwd, int startInex, int pageSize) {
+		List<BoardVo> result = sqlSession.selectList("board.getList");
+		return result;
+	}
 }

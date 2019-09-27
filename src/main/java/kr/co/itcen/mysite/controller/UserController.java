@@ -31,6 +31,11 @@ public class UserController {
 	
 	@RequestMapping(value="/join", method=RequestMethod.POST)
 	public String join(@ModelAttribute UserVo vo) {
+		
+		if(vo.getEmail().indexOf("@") < 0) {
+			return "user/join";
+		}
+		
 		userService.join(vo);
 		return "redirect:/user/joinsuccess";
 	}

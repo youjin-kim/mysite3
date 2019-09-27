@@ -7,6 +7,6 @@
 			<ul>
 				<li><a href="${pageContext.servletContext.contextPath }">김유진</a></li>
 				<li><a href="${pageContext.servletContext.contextPath }/guestbook/list">방명록</a></li>
-				<li><a href="${pageContext.servletContext.contextPath }/board">게시판</a></li>
+				<li><a href="${pageContext.servletContext.contextPath }/board/list">게시판</a></li>
 			</ul>
 		</div>

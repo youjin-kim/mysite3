@@ -33,11 +33,11 @@
 						</tr>
 						<tr>
 							<td class="label">내용</td>
-							<td><textarea id="contents" name="contents"></textarea></td>
+							<td><textarea id="content" name="contents"></textarea></td>
 						</tr>
 					</table>
 					<div class="bottom">
-						<a href="${pageContext.servletContext.contextPath }/board?p=${p }">취소</a>
+						<a href="${pageContext.servletContext.contextPath }/board?p=${param.p }">취소</a>
 						<input type="submit" value="등록">
 					</div>
 				</form>
